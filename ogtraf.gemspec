@@ -7,8 +7,8 @@ Gem::Specification.new do |s|
   s.email         = 'ace@haxalot.com'
   s.license       = 'MIT'
 
-  s.files         = `git ls-files -z`.split("\x0")
-  s.executables   = s.files.grep(%r{^bin/}) { |f| File.basename(f) }
+  s.files         = Dir[ 'bin/*', 'lib/**/*' ]
+  s.executables   << 'ogtraf'
 
   s.require_paths = [ 'lib' ]
 end

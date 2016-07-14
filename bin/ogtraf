@@ -2,25 +2,23 @@
 
 require 'ogtraf'
 
-if $0 == __FILE__
-  from = ARGV[0]
-  to = ARGV[1]
+from = ARGV[0]
+to = ARGV[1]
 
-  avail = OGTraf.journey(from, to)
+avail = OGTraf.journey(from, to)
 
-  puts "Upcoming journeys from #{avail.first.from} to #{avail.first.to}:"
-  avail.each do |j|
-    next if j.departure < Time.now
+puts "Upcoming journeys from #{avail.first.from} to #{avail.first.to}:"
+avail.each do |j|
+  next if j.departure < Time.now
 
-    time_left = j.departure - Time.now
+  time_left = j.departure - Time.now
 
-    hours = (time_left / 3600).floor
-    minutes = ((time_left % 3600) / 60).floor
+  hours = (time_left / 3600).floor
+  minutes = ((time_left % 3600) / 60).floor
 
-    puts
-    puts "In #{format('%02d:%02d', hours, minutes)}:"
-    j.connections.each do |c|
-      puts "- (#{c.departure.strftime '%H:%M'} - #{c.arrival.strftime '%H:%M'}) #{c.line} from #{c.from} to #{c.to}"
-    end
+  puts
+  puts "In #{format('%02d:%02d', hours, minutes)}:"
+  j.connections.each do |c|
+    puts "- (#{c.departure.strftime '%H:%M'} - #{c.arrival.strftime '%H:%M'}) #{c.line} from #{c.from} to #{c.to}"
   end
 end
