@@ -1,31 +1,52 @@
 #!/usr/bin/env ruby
 
 require 'ogtraf'
+require 'thor'
 
-from = ARGV[0]
-to = ARGV[1]
+# Implements the OGTraf CLI
+class OGTrafCLI < Thor
+  class_option :verbose, type: :boolean, default: false, aliases: '-v'
 
-avail = OGTraf.journey(from, to)
+  desc 'journey FROM TO', 'Plans a journey from FROM to TO'
+  option :walk, default: false, type: :boolean, desc: 'Is walking allowed?'
+  def journey(from, to)
+    avail = OGTraf.journey(
+      from, to,
+      walk: options[:walk],
+      verbose: options[:verbose]
+    )
 
-puts "Upcoming journeys from #{avail.first.from} to #{avail.first.to}:"
-avail.each do |j|
-  next if j.departure < Time.now
+    puts "Upcoming journeys from #{avail.first.from} to #{avail.first.to}:"
+    avail.each do |j|
+      next if j.departure < Time.now
 
-  time_left = j.departure - Time.now
+      time_left = j.departure - Time.now
 
-  hours = (time_left / 3600).floor
-  minutes = ((time_left % 3600) / 60).floor
+      hours = (time_left / 3600).floor
+      minutes = ((time_left % 3600) / 60).floor
 
-  puts
-  puts "In #{format('%02d:%02d', hours, minutes)}:" if hours > 0
-  puts "In #{minutes} minutes:" if hours == 0
+      puts
+      puts "In #{format('%02d:%02d', hours, minutes)}:" if hours > 0
+      puts "In #{minutes} minutes:" if hours == 0
 
-  j.connections.each do |c|
-    puts format('- (%s - %s) %s from %s to %s',
-                c.departure.strftime('%H:%M'),
-                c.arrival.strftime('%H:%M'),
-                c.line.to_s,
-                c.from.to_s,
-                c.to.to_s)
+      j.connections.each do |c|
+        puts format('- (%s - %s) %s from %s to %s',
+                    c.departure.strftime('%H:%M'),
+                    c.arrival.strftime('%H:%M'),
+                    c.line.to_s,
+                    c.from.to_s,
+                    c.to.to_s)
+      end
+    end
+  end
+
+  desc 'stop STOP', 'Finds a stop by the given name'
+  option :limit, default: 5, type: :numeric, desc: 'Number of entries wanted',
+                 aliases: '-l'
+  def stop(name)
+    puts 'Found stops:'
+    puts OGTraf.stops(name).take(options[:limit]).map(&:name)
   end
 end
+
+OGTrafCLI.start
