@@ -45,7 +45,10 @@ class OGTrafCLI < Thor
                  aliases: '-l'
   def stop(name)
     puts 'Found stops:'
-    puts OGTraf.stops(name).take(options[:limit]).map(&:name)
+    puts OGTraf.stops(
+      name,
+      verbose: options[:verbose]
+    ).take(options[:limit]).map(&:name)
   end
 end
 
