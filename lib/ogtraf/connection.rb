@@ -2,7 +2,8 @@ require 'time'
 
 module OGTraf
   class Connection
-    attr_reader :departure, :real_departure, :arrival, :real_arrival, :from, :to, :line, :deviations
+    attr_reader :departure, :real_departure, :arrival, :real_arrival, :from,
+                :to, :line, :deviations
 
     def initialize(datablock)
       @departure = Time.parse datablock[:DepDateTime]
@@ -13,8 +14,8 @@ module OGTraf
 
       if datablock[:RealTime] && datablock[:RealTime][:RealTimeInfo]
         datablock[:RealTime][:RealTimeInfo].each do |rti|
-          @departure -= rti[:DepTimeDeviation] * 60
-          @arrival -= rti[:ArrTimeDeviation] * 60
+          @departure += rti[:DepTimeDeviation] * 60
+          @arrival += rti[:ArrTimeDeviation] * 60
         end
       end
 

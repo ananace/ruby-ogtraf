@@ -17,8 +17,15 @@ avail.each do |j|
   minutes = ((time_left % 3600) / 60).floor
 
   puts
-  puts "In #{format('%02d:%02d', hours, minutes)}:"
+  puts "In #{format('%02d:%02d', hours, minutes)}:" if hours > 0
+  puts "In #{minutes} minutes:" if hours == 0
+
   j.connections.each do |c|
-    puts "- (#{c.departure.strftime '%H:%M'} - #{c.arrival.strftime '%H:%M'}) #{c.line} from #{c.from} to #{c.to}"
+    puts format('- (%s - %s) %s from %s to %s',
+                c.departure.strftime('%H:%M'),
+                c.arrival.strftime('%H:%M'),
+                c.line.to_s,
+                c.from.to_s,
+                c.to.to_s)
   end
 end

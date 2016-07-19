@@ -1,6 +1,7 @@
 module OGTraf
   #
   class Stop
+    include Comparable
     attr_reader :name, :id, :gps, :nice_name, :type
 
     def initialize(datablock)
@@ -19,7 +20,11 @@ module OGTraf
     end
 
     def to_s
-      "#{@name}"
+      @name.to_s
+    end
+
+    def <=>(other)
+      @id <=> other.id
     end
   end
 end
