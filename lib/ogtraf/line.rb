@@ -1,6 +1,8 @@
 module OGTraf
+  #
   class Line
-    attr_reader :name, :number, :note, :operator, :type, :towards, :train_nr, :walk
+    attr_reader :name, :number, :note, :operator, :type, :towards, :train_nr,
+                :walk
 
     def initialize(datablock)
       @name = datablock[:LineName]
@@ -17,7 +19,7 @@ module OGTraf
     end
 
     def to_s
-      "#{@name}"
+      @name.to_s
     end
   end
 end

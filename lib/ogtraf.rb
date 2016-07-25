@@ -10,6 +10,7 @@ require 'net/http'
 require 'json'
 require 'uri'
 
+#
 module OGTraf
   module Priority
     SHORTEST_TIME = 0
@@ -24,8 +25,10 @@ module OGTraf
     query[:q] = name
     verbose = query.delete :verbose
 
-    uri = URI("https://ostgotatrafiken.se/ajax/Stops/Find")
-    uri.query = query.map {|k,v| CGI.encode(k.to_s) + "=" + CGI.encode(v.to_s) }.join '&'
+    uri = URI('https://ostgotatrafiken.se/ajax/Stops/Find')
+    uri.query = query.map do |k, v|
+      "#{CGI.encode k.to_s}=#{CGI.encode v.to_s}"
+    end.join '&'
 
     j = run_query(uri, verbose: verbose)
     j.map { |v| Stop.new v }
@@ -44,11 +47,11 @@ module OGTraf
 
     journey_start = stops(journey_start).first if journey_start.is_a? String
     journey_end = stops(journey_end).first if journey_end.is_a? String
-    
-    raise "Date must be a time" unless query[:date].is_a? Time
+
+    raise 'Date must be a time' unless query[:date].is_a? Time
     verbose = query.delete :verbose
 
-    query.merge!({
+    query.merge!(
       date: query[:date].strftime('%Y-%m-%d+%H:%M'),
 
       startId: journey_start.id,
@@ -57,16 +60,16 @@ module OGTraf
       endId: journey_end.id,
       endType: journey_end.type,
       endLl: journey_end.gps_ll
-    })
+    )
 
     uri = URI('https://ostgotatrafiken.se/ajax/Journey/Find')
-    uri.query = query.map { |k,v| URI.encode(k.to_s) + "=" + URI.encode(v.to_s) }.join '&' 
+    uri.query = query.map do |k, v|
+      "#{CGI.encode k.to_s}=#{CGI.encode v.to_s}"
+    end.join '&'
 
     j = run_query(uri, verbose: verbose, error: true)
     j.map { |v| Journey.new v }
   end
-
-  private
 
   def self.run_query(uri, options = {})
     verbose = options[:verbose]
@@ -77,7 +80,7 @@ module OGTraf
     h.use_ssl = uri.scheme == 'https'
 
     r = h.start do |http|
-      http.request(Net::HTTP::Get.new (uri))
+      http.request(Net::HTTP::Get.new(uri))
     end
 
     p r if verbose

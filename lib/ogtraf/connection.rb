@@ -1,6 +1,7 @@
 require 'time'
 
 module OGTraf
+  #
   class Connection
     attr_reader :departure, :real_departure, :arrival, :real_arrival, :from,
                 :to, :line, :deviations

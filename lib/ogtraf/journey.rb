@@ -1,6 +1,7 @@
 require 'time'
 
 module OGTraf
+  #
   class Journey
     attr_reader :departure, :arrival, :from, :to,
                 :real_departure, :real_arrival,

@@ -4,7 +4,6 @@ module OGTraf
     attr_reader :from, :to, :time, :real_time, :name, :stops
 
     def initialize(datablock)
-      
     end
   end
 end

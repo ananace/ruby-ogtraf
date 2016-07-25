@@ -1,6 +1,7 @@
 require 'time'
 
 module OGTraf
+  #
   class Deviation
     attr_reader :header, :summary, :details, :text, :from, :to
 
@@ -22,7 +23,7 @@ module OGTraf
     end
 
     def to_s
-      "#{@header}"
+      @header.to_s
     end
   end
 end
