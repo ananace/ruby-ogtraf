@@ -5,6 +5,7 @@ require 'ogtraf/journey'
 require 'ogtraf/line'
 require 'ogtraf/stop'
 require 'ogtraf/version'
+require 'cgi'
 require 'net/http'
 require 'json'
 require 'uri'
@@ -24,7 +25,7 @@ module OGTraf
     verbose = query.delete :verbose
 
     uri = URI("https://ostgotatrafiken.se/ajax/Stops/Find")
-    uri.query = query.map {|k,v| URI.encode(k.to_s) + "=" + URI.encode(v.to_s) }.join '&'
+    uri.query = query.map {|k,v| CGI.encode(k.to_s) + "=" + CGI.encode(v.to_s) }.join '&'
 
     j = run_query(uri, verbose: verbose)
     j.map { |v| Stop.new v }
