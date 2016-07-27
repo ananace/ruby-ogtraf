@@ -1,37 +1,29 @@
 # Cache gems in between builds
 cache:
   paths:
-    - vendor/ruby
+  - vendor/ruby
 
 # This is a basic example for a gem or script which doesn't use
 # services such as redis or postgres
 before_script:
-  - ruby -v                                   # Print out ruby version for debugging
-  - gem install bundler  --no-ri --no-rdoc    # Bundler is not installed with the image
-  - bundle install -j $(nproc) --path vendor  # Install dependencies into ./vendor/ruby
+  - ruby -v
+  - gem install bundler  --no-ri --no-rdoc
+  - bundle install -j $(nproc) --path vendor
 
 stages:
   - lint
   - build
 
-# Optional - Delete if not using `rubocop`
 rubocop:
   stage: lint
   script:
-    - rubocop
+  - rubocop
   tags:
-    - ruby
+  - ruby
 
-#rspec:
-#  stage: lint
-#  script:
-#    - rspec spec
-#  tags:
-#    - ruby
-
-build:
+gem:
   stage: build
   script:
-    - rake build
+  - rake build
   tags:
-    - ruby
+  - ruby
