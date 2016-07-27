@@ -7,7 +7,7 @@ cache:
 # services such as redis or postgres
 before_script:
   - ruby -v
-  - gem install bundler --no-ri --no-rdoc
+  #- gem install bundler --no-ri --no-rdoc
   - echo "Yes"
   - bundle install -j4 --path vendor
   - echo "On my way"
