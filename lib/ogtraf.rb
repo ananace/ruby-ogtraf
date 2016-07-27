@@ -27,7 +27,7 @@ module OGTraf
 
     uri = URI('https://ostgotatrafiken.se/ajax/Stops/Find')
     uri.query = query.map do |k, v|
-      "#{CGI.encode k.to_s}=#{CGI.encode v.to_s}"
+      "#{CGI.escape k.to_s}=#{CGI.escape v.to_s}"
     end.join '&'
 
     j = run_query(uri, verbose: verbose)
@@ -64,7 +64,7 @@ module OGTraf
 
     uri = URI('https://ostgotatrafiken.se/ajax/Journey/Find')
     uri.query = query.map do |k, v|
-      "#{CGI.encode k.to_s}=#{CGI.encode v.to_s}"
+      "#{CGI.escape k.to_s}=#{CGI.escape v.to_s}"
     end.join '&'
 
     j = run_query(uri, verbose: verbose, error: true)
