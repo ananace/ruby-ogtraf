@@ -10,14 +10,28 @@ before_script:
   - gem install bundler  --no-ri --no-rdoc    # Bundler is not installed with the image
   - bundle install -j $(nproc) --path vendor  # Install dependencies into ./vendor/ruby
 
+stages:
+  - lint
+  - build
+
 # Optional - Delete if not using `rubocop`
 rubocop:
+  stage: lint
   script:
-  - rubocop
+    - rubocop
+  tags:
+    - ruby
 
 #rspec:
+#  stage: lint
 #  script:
-#  - rspec spec
+#    - rspec spec
+#  tags:
+#    - ruby
 
-script:
-  - rake build
+build:
+  stage: build
+  script:
+    - rake build
+  tags:
+    - ruby
