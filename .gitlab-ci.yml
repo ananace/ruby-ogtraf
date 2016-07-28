@@ -11,8 +11,12 @@ stages:
 bundler:
   stage: deps
   script:
+  - echo one
+  - echo two
   - gem install bundler --no-ri --no-rdoc
+  - echo three
   - bundle install -j4 --path vendor
+  - echo four
 
 rubocop:
   stage: lint
