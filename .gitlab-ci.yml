@@ -1,0 +1,33 @@
+# Cache gems in between builds
+cache:
+  paths:
+  - vendor/ruby
+
+stages:
+  - deps
+  - lint
+  - build
+
+bundler:
+  stage: deps
+  script:
+  - echo one
+  - echo two
+  - gem install bundler --no-ri --no-rdoc
+  - echo three
+  - bundle install -j4 --path vendor
+  - echo four
+
+rubocop:
+  stage: lint
+  script:
+  - rubocop
+  tags:
+  - ruby
+
+gem:
+  stage: build
+  script:
+  - rake build
+  tags:
+  - ruby
