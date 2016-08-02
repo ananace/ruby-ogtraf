@@ -22,7 +22,7 @@ module OGTraf
       stopsOnly: true
     }.merge(options)
 
-    query[:q] = name
+    query[:q] = CGI.escape name.to_s
     verbose = query.delete :verbose
 
     uri = URI('https://ostgotatrafiken.se/ajax/Stops/Find')
