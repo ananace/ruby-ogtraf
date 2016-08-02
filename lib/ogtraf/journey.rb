@@ -17,7 +17,9 @@ module OGTraf
       @connections = datablock[:Routelinks].map { |r| Connection.new r }
 
       @departure = @connections.first.departure
-      @arrival = @connections.find { |c| c.to == @to }.arrival
+      arrival_point = @connections.find { |c| c.to == @to }
+      @arrival = @real_arrival
+      @arrival = arrival_point.arrival unless arrival_point.nil?
     end
 
     def on_time?(side = :arr)

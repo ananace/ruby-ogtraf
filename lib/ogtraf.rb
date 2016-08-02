@@ -27,7 +27,7 @@ module OGTraf
 
     uri = URI('https://ostgotatrafiken.se/ajax/Stops/Find')
     uri.query = query.map do |k, v|
-      "#{CGI.escape k.to_s}=#{CGI.escape v.to_s}"
+      "#{k}=#{v}"
     end.join '&'
 
     j = run_query(uri, verbose: verbose)
@@ -45,10 +45,10 @@ module OGTraf
       walk: false
     }.merge(options)
 
-    journey_start = stops(journey_start).first if journey_start.is_a? String
-    journey_end = stops(journey_end).first if journey_end.is_a? String
+    journey_start = stops(journey_start).first unless journey_start.is_a? Stop
+    journey_end = stops(journey_end).first unless journey_end.is_a? Stop
 
-    raise 'Date must be a time' unless query[:date].is_a? Time
+    raise 'Date must be a Time' unless query[:date].is_a? Time
     verbose = query.delete :verbose
 
     query.merge!(
@@ -64,7 +64,7 @@ module OGTraf
 
     uri = URI('https://ostgotatrafiken.se/ajax/Journey/Find')
     uri.query = query.map do |k, v|
-      "#{CGI.escape k.to_s}=#{CGI.escape v.to_s}"
+      "#{k}=#{v}"
     end.join '&'
 
     j = run_query(uri, verbose: verbose, error: true)

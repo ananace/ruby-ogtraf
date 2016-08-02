@@ -10,13 +10,13 @@ module OGTraf
       @gps = {
         lon: datablock[:Ll][0],
         lat: datablock[:Ll][1]
-      } if datablock.key? :Ll
+      } if datablock.key?(:Ll) && !datablock[:Ll].nil?
       @nice_name = datablock[:OgtStopUrlSegment]
       @type = datablock[:OgtType].to_sym
     end
 
     def gps_ll
-      [@gps[:lat], @gps[:lon]].join ','
+      [@gps[:lon], @gps[:lat]].join ','
     end
 
     def to_s
