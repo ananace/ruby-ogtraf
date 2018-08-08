@@ -1,3 +1,7 @@
+require 'cgi'
+require 'json'
+require 'logging'
+require 'net/http'
 require 'ogtraf/connection'
 require 'ogtraf/departure'
 require 'ogtraf/deviation'
@@ -5,12 +9,8 @@ require 'ogtraf/journey'
 require 'ogtraf/line'
 require 'ogtraf/stop'
 require 'ogtraf/version'
-require 'cgi'
-require 'net/http'
-require 'json'
 require 'uri'
 
-#
 module OGTraf
   module Priority
     SHORTEST_TIME = 0
@@ -23,14 +23,13 @@ module OGTraf
     }.merge(options)
 
     query[:q] = CGI.escape name.to_s
-    verbose = query.delete :verbose
 
     uri = URI('https://ostgotatrafiken.se/ajax/Stops/Find')
     uri.query = query.map do |k, v|
       "#{k}=#{v}"
     end.join '&'
 
-    j = run_query(uri, verbose: verbose)
+    j = run_query(uri)
     j.map { |v| Stop.new v }
   end
 
@@ -49,7 +48,6 @@ module OGTraf
     journey_end = stops(journey_end).first unless journey_end.is_a? Stop
 
     raise 'Date must be a Time' unless query[:date].is_a? Time
-    verbose = query.delete :verbose
 
     query.merge!(
       date: query[:date].strftime('%Y-%m-%d+%H:%M'),
@@ -67,14 +65,12 @@ module OGTraf
       "#{k}=#{v}"
     end.join '&'
 
-    j = run_query(uri, verbose: verbose, error: true)
+    j = run_query(uri, error: true)
     j.map { |v| Journey.new v }
   end
 
-  def self.run_query(uri, options = {})
-    verbose = options[:verbose]
-
-    p uri if verbose
+  def self.run_query(uri, _options = {})
+    logger.debug uri
 
     h = Net::HTTP.new(uri.host, uri.port)
     h.use_ssl = uri.scheme == 'https'
@@ -83,18 +79,34 @@ module OGTraf
       http.request(Net::HTTP::Get.new(uri))
     end
 
-    p r if verbose
+    logger.debug r
 
-    j = JSON.parse(r.body, symbolize_names: true)
-    p j if verbose
+    begin
+      j = JSON.parse(r.body, symbolize_names: true)
 
-    raise j unless r.is_a? Net::HTTPSuccess
+      logger.debug j
 
-    first = j.first
-    if first.key? :ErrorCode
-      raise first[:ErrorText] unless first[:ErrorCode] == 0
+      raise j unless r.is_a? Net::HTTPSuccess
+
+      first = j.first
+      if first.key? :ErrorCode
+        raise first[:ErrorText] unless first[:ErrorCode].zero?
+      end
+
+      j
+    rescue JSON::ParserError
+      raise "HTTP #{r.code} Response with unparseable JSON."
     end
+  end
 
-    j
+  def self.debug!
+    logger.level = :debug
+  end
+
+  def self.logger
+    @logger ||= Logging.logger[self].tap do |logger|
+      logger.add_appenders Logging.appenders.stdout
+      logger.level = :info
+    end
   end
 end

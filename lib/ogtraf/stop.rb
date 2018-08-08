@@ -7,10 +7,12 @@ module OGTraf
     def initialize(datablock)
       @name = datablock[:PlaceName]
       @id = datablock[:Id]
-      @gps = {
-        lon: datablock[:Ll][0],
-        lat: datablock[:Ll][1]
-      } if datablock.key?(:Ll) && !datablock[:Ll].nil?
+      if datablock.key?(:Ll) && !datablock[:Ll].nil?
+        @gps = {
+          lon: datablock[:Ll][0],
+          lat: datablock[:Ll][1]
+        }
+      end
       @nice_name = datablock[:OgtStopUrlSegment]
       @type = datablock[:OgtType].to_sym
     end

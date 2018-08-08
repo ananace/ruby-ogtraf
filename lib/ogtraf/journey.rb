@@ -22,19 +22,20 @@ module OGTraf
       @arrival = arrival_point.arrival unless arrival_point.nil?
     end
 
-    def on_time?(side = :arr)
+    def on_time?(side = :arr, allowed_drift = 60)
       raise ArgumentError unless
-        [:both, :dep, :departure, :arr, :arrival].include? side
+        %i[both dep departure arr arrival].include? side
 
-      return (@departure - @real_departure).abs < 60 &&
-             (@arrival - @real_arrival).abs < 60 if
-               side == :both
+      if side == :both
+        return (@departure - @real_departure).abs < allowed_drift &&
+               (@arrival - @real_arrival).abs < allowed_drift
+      end
 
       case side
       when :dep, :departure
-        (@departure - @real_departure).abs < 60
+        (@departure - @real_departure).abs < allowed_drift
       when :arr, :arrival
-        (@arrival - @real_arrival).abs < 60
+        (@arrival - @real_arrival).abs < allowed_drift
       end
     end
   end
