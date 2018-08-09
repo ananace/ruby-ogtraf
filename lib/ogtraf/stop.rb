@@ -2,7 +2,7 @@ module OGTraf
   #
   class Stop
     include Comparable
-    attr_reader :name, :id, :gps, :nice_name, :type
+    attr_reader :name, :id, :gps, :clean_name, :type
 
     def initialize(datablock)
       @name = datablock[:PlaceName]
@@ -13,7 +13,7 @@ module OGTraf
           lat: datablock[:Ll][1]
         }
       end
-      @nice_name = datablock[:OgtStopUrlSegment]
+      @clean_name = datablock[:OgtStopUrlSegment]
       @type = datablock[:OgtType].to_sym
     end
 

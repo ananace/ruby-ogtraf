@@ -19,15 +19,13 @@ module OGTraf
 
   def self.stops(name, options = {})
     query = {
-      stopsOnly: true
+      pointType: nil
     }.merge(options)
 
     query[:q] = CGI.escape name.to_s
 
-    uri = URI('https://ostgotatrafiken.se/ajax/Stops/Find')
-    uri.query = query.map do |k, v|
-      "#{k}=#{v}"
-    end.join '&'
+    uri = URI('https://rest.ostgotatrafiken.se/stops/Find')
+    uri.query = URI.encode_www_form(query)
 
     j = run_query(uri)
     j.map { |v| Stop.new v }
@@ -66,7 +64,7 @@ module OGTraf
       date: Time.now,
       direction: 0,
       span: :default,
-      traffictypes: 63,
+      traffictypes: 0,
       changetime: 0,
       priority: Priority::SHORTEST_TIME,
       walk: false
@@ -78,23 +76,24 @@ module OGTraf
     raise 'Date must be a Time' unless query[:date].is_a? Time
 
     query.merge!(
-      date: query[:date].strftime('%Y-%m-%d+%H:%M'),
+      time: query[:date].strftime('%H:%M'),
+      date: query[:date].strftime('%Y-%m-%d'),
 
       startId: journey_start.id,
       startType: journey_start.type,
       startLl: journey_start.gps_ll,
+      startName: journey_start.name,
       endId: journey_end.id,
       endType: journey_end.type,
-      endLl: journey_end.gps_ll
+      endLl: journey_end.gps_ll,
+      endName: journey_end.name
     )
 
-    uri = URI('https://ostgotatrafiken.se/ajax/Journey/Find')
-    uri.query = query.map do |k, v|
-      "#{k}=#{v}"
-    end.join '&'
+    uri = URI('https://rest.ostgotatrafiken.se/journey/Find')
+    uri.query = URI.encode_www_form(query)
 
     j = run_query(uri, error: true)
-    j.map { |v| Journey.new v }
+    j[:Journeys].map { |v| Journey.new v }
   end
 
   def self.run_query(uri, _options = {})
@@ -116,9 +115,11 @@ module OGTraf
 
       raise j unless r.is_a? Net::HTTPSuccess
 
-      first = j.first
-      if first.key? :ErrorCode
-        raise first[:ErrorText] unless first[:ErrorCode].zero?
+      if j.is_a? Array
+        first = j.first
+        if first.key? :ErrorCode
+          raise first[:ErrorText] unless first[:ErrorCode].zero?
+        end
       end
 
       j
