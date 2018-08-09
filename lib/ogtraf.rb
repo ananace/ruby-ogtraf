@@ -33,6 +33,34 @@ module OGTraf
     j.map { |v| Stop.new v }
   end
 
+  def self.departures(departure_start, options = {})
+    query = {
+      date: nil,
+      delay: 0,
+      maxNumberOfResultPerColumn: 8,
+      columnsPerPageCount: 1,
+      pagesCount: 1,
+      lines: nil,
+      trafficTypes: nil,
+      stopPoints: nil
+    }.merge(options)
+
+    departure_start = stops(departure_start).first unless departure_start.is_a? Stop
+
+    raise 'Date must be a Time' unless query[:date].is_a? Time
+
+    query.merge!(
+      date: query[:date].strftime('%Y-%m-%d+%H:%M'),
+      stopAreaId: departure_start.id
+    )
+
+    uri = URI('https://rest.ostgotatrafiken.se/stopdepartures/departures')
+    uri.query = URI.encode_www_form(query)
+
+    j = run_query(uri)
+    j[:groups].first.map { |v| Departure.new v[:Line] }
+  end
+
   def self.journey(journey_start, journey_end, options = {})
     query = {
       date: Time.now,
