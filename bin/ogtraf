@@ -1,6 +1,7 @@
 #!/usr/bin/env ruby
 
 require 'ogtraf'
+require 'time'
 require 'thor'
 
 # Implements the OGTraf CLI
@@ -11,12 +12,17 @@ class OGTrafCLI < Thor
   option :walk, default: false, type: :boolean, desc: 'Is walking allowed?'
   option :num, default: 5, type: :numeric, desc: 'Number of entries wanted',
                aliases: '-n'
+
+  option :time, default: nil, type: :string, desc: 'Date+Time to search from',
+                aliases: '-t'
+
   def journey(from, to)
     from_s = OGTraf.stops(from).first
     to_s = OGTraf.stops(to).first
     time = Time.now
+    time = Time.parse(options[:date]) if options[:date]
 
-    puts "Next #{options[:num]} journeys from #{from_s} to #{to_s}:"
+    puts "Next #{options[:num]} journeys from #{from_s} to #{to_s} after #{time}:"
 
     shown = 0
     until shown >= options[:num]
