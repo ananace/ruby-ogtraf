@@ -14,7 +14,7 @@ Gem::Specification.new do |s|
 
   s.add_dependency 'logging', '~> 2'
 
-  s.add_runtime_dependency 'thor', '~> 0.19'
+  s.add_runtime_dependency 'thor', '~> 0.20'
 
   s.add_development_dependency 'bundler'
   s.add_development_dependency 'minitest'
