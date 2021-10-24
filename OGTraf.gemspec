@@ -15,9 +15,9 @@ Gem::Specification.new do |s|
   s.require_paths = ['lib']
   s.executables << 'ogtraf'
 
-  s.add_dependency 'logging'
+  s.add_dependency 'logging', '~> 2'
 
-  s.add_runtime_dependency 'thor'
+  s.add_runtime_dependency 'thor', '~> 1'
 
   s.add_development_dependency 'bundler'
   s.add_development_dependency 'minitest'
