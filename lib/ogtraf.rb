@@ -14,119 +14,112 @@ require 'ogtraf/version'
 require 'uri'
 
 module OGTraf
+  BASE_URI = URI('https://rest.ostgotatrafiken.se').freeze
+
   module Priority
     SHORTEST_TIME = 0
     FEWER_CHANGES = 1
+
+    def self.map(symbol)
+      return symbol if symbol.is_a? Integer
+
+      case symbol
+      when :time, :fastest, :shortest_time
+        SHORTEST_TIME
+      when :changes, :fewer_changes
+        FEWER_CHANGES
+      end
+    end
   end
 
-  def self.stops(name, options = {})
-    query = {
-      pointType: nil
-    }.merge(options)
+  def self.stops(name:, **options)
+    uri = URI("#{BASE_URI}/stops/Find")
+    uri.query = URI.encode_www_form(
+      q: CGI.escape(name.to_s),
 
-    query[:q] = CGI.escape name.to_s
-
-    uri = URI('https://rest.ostgotatrafiken.se/stops/Find')
-    uri.query = URI.encode_www_form(query)
-
-    j = run_query(uri)
-    j.map { |v| Stop.new v }
-  end
-
-  def self.departures(departure_start, options = {})
-    query = {
-      date: nil,
-      delay: 0,
-      maxNumberOfResultPerColumn: 8,
-      columnsPerPageCount: 1,
-      pagesCount: 1,
-      lines: nil,
-      trafficTypes: nil,
-      stopPoints: nil
-    }.merge(options)
-
-    departure_start = stops(departure_start).first unless departure_start.is_a? Stop
-
-    raise 'Date must be a Time' unless query[:date].is_a? Time
-
-    query.merge!(
-      date: query[:date].strftime('%Y-%m-%d+%H:%M'),
-      stopAreaId: departure_start.id
+      pointType: options.fetch(:point_type, nil)
     )
 
-    uri = URI('https://rest.ostgotatrafiken.se/stopdepartures/departures')
-    uri.query = URI.encode_www_form(query)
-
-    j = run_query(uri)
-    j[:groups].first.map { |v| Departure.new v[:Line] }
+    run_query(uri).map { |v| Stop.new v }
   end
 
-  def self.journey(journey_start, journey_end, options = {})
-    query = {
-      date: Time.now,
-      direction: 0,
-      span: :default,
-      traffictypes: 0,
-      changetime: 0,
-      priority: Priority::SHORTEST_TIME,
-      walk: false
-    }.merge(options)
-
-    journey_start = stops(journey_start).first unless journey_start.is_a? Stop
-    journey_end = stops(journey_end).first unless journey_end.is_a? Stop
-
+  def self.departures(from:, date: Time.now, **options)
     raise 'Date must be a Time' unless query[:date].is_a? Time
 
-    query.merge!(
-      time: query[:date].strftime('%H:%M'),
-      date: query[:date].strftime('%Y-%m-%d'),
+    from = stops(name: from).first unless from.is_a? Stop
 
-      startId: journey_start.id,
-      startType: journey_start.type,
-      startLl: journey_start.gps_ll,
-      startName: journey_start.name,
-      endId: journey_end.id,
-      endType: journey_end.type,
-      endLl: journey_end.gps_ll,
-      endName: journey_end.name
+    uri = URI("#{BASE_URI}/stopdepartures/departures")
+    uri.query = URI.encode_www_form(
+      date: date.strftime('%Y-%m-%d+%H:%M'),
+      stopAreaId: from.id,
+
+      delay: options.fetch(:delay, 0),
+      maxNumberOfResultPerColumn: options.fetch(:max_reults, 8),
+      columnsPerPageCount: options.fetch(:per_page, 1),
+      pagesCount: options.fetch(:page_count, 1),
+      lines: options.fetch(:lines, nil),
+      trafficTypes: options.fetch(:traffic_types, nil),
+      stopPoints: options.fetch(:stops, nil)
     )
 
-    uri = URI('https://rest.ostgotatrafiken.se/journey/Find')
-    uri.query = URI.encode_www_form(query)
+    run_query(uri)[:groups].first.map { |v| Departure.new v[:Line] }
+  end
 
-    j = run_query(uri, error: true)
-    j[:Journeys].map { |v| Journey.new v }
+  def self.journey(from:, to:, date: Time.now, **options)
+    raise 'Date must be a Time' unless date.is_a? Time
+
+    from = stops(name: from).first unless from.is_a? Stop
+    to = stops(name: to).first unless to.is_a? Stop
+
+    uri = URI("#{BASE_URI}/journey/Find")
+    uri.query = URI.encode_www_form(
+      time: date.strftime('%H:%M'),
+      date: date.strftime('%Y-%m-%d'),
+
+      changetime: options.fetch(:changetime, 0),
+      direction: options.fetch(:direction, 0),
+      priority: Priority.map(options.fetch(:priority, :time)),
+      span: options.fetch(:span, :default),
+      traffictypes: options.fetch(:traffictypes, 0),
+      walk: options.fetch(:walk, false),
+
+      startId: from.id,
+      startType: from.type,
+      startLl: from.gps_ll,
+      startName: from.name,
+      endId: to.id,
+      endType: to.type,
+      endLl: to.gps_ll,
+      endName: to.name
+    )
+
+    run_query(uri, error: true)[:Journeys].map { |v| Journey.new v }
   end
 
   def self.run_query(uri, _options = {})
-    logger.debug uri
+    req = Net::HTTP::Get.new(uri)
+    logger.debug "< #{req.method} #{req.uri}"
+    req.each_header { |header| logger.debug "< #{header}: #{req[header]}" }
+    logger.debug '<'
 
-    h = Net::HTTP.new(uri.host, uri.port)
-    h.use_ssl = uri.scheme == 'https'
+    resp = http_req(req)
 
-    r = h.start do |http|
-      http.request(Net::HTTP::Get.new(uri))
-    end
-
-    logger.debug r
+    logger.debug "> #{resp.code} #{resp.msg}"
+    resp.each_header { |header| logger.debug "> #{header}: #{resp[header]}" }
+    logger.debug '>'
 
     begin
-      j = JSON.parse(r.body, symbolize_names: true)
+      data = JSON.parse(resp.body, symbolize_names: true)
+      raise data unless resp.is_a? Net::HTTPSuccess
 
-      logger.debug j
-
-      raise j unless r.is_a? Net::HTTPSuccess
-
-      if j.is_a? Array
-        first = j.first
-        if first.key? :ErrorCode
-          raise first[:ErrorText] unless first[:ErrorCode].zero?
-        end
+      if data.is_a? Array
+        first = data.first
+        raise first[:ErrorText] if first.key?(:ErrorCode) && !first[:ErrorCode].zero?
       end
 
-      j
+      data
     rescue JSON::ParserError
-      raise "HTTP #{r.code} Response with unparseable JSON."
+      raise "HTTP #{resp.code} Response with unparseable JSON."
     end
   end
 
@@ -138,6 +131,17 @@ module OGTraf
     @logger ||= Logging.logger[self].tap do |logger|
       logger.add_appenders Logging.appenders.stdout
       logger.level = :info
+    end
+  end
+
+  class << self
+    private
+
+    def http_req(req)
+      @http ||= Net::HTTP.new(BASE_URI.host, BASE_URI.port)
+      @http.use_ssl = BASE_URI.scheme == 'https'
+      @http.start unless @http.started?
+      @http.request req
     end
   end
 end

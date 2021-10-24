@@ -18,8 +18,10 @@ class OGTrafCLI < Thor
                 aliases: '-t'
 
   def journey(from, to)
-    from_s = OGTraf.stops(from).first
-    to_s = OGTraf.stops(to).first
+    OGTraf.debug! if options[:verbose]
+
+    from_s = OGTraf.stops(name: from).first
+    to_s = OGTraf.stops(name: to).first
     time = Time.now
     time = Time.parse(options[:date]) if options[:date]
 
@@ -28,11 +30,11 @@ class OGTrafCLI < Thor
     shown = 0
     until shown >= options[:num]
       avail = OGTraf.journey(
-        from, to,
+        from: from,
+        to: to,
         date: time,
         span: :after,
-        walk: options[:walk],
-        verbose: options[:verbose]
+        walk: options[:walk]
       )
 
       avail.each do |j|
@@ -74,12 +76,16 @@ class OGTrafCLI < Thor
   desc 'stop STOP', 'Finds a stop by the given name'
   option :limit, default: 5, type: :numeric, desc: 'Number of entries wanted',
                  aliases: '-l'
+  option :output, default: :text, desc: 'Desired output - text or json'
   def stop(name)
-    puts 'Found stops:'
-    puts OGTraf.stops(
-      name,
-      verbose: options[:verbose]
-    ).take(options[:limit]).map(&:name)
+    OGTraf.debug! if options[:verbose]
+
+    if options[:output].to_sym == :json
+      puts OGTraf.stops(name: name).take(options[:limit]).to_json
+    else
+      puts 'Found stops:'
+      puts OGTraf.stops(name: name).take(options[:limit]).map(&:name)
+    end
   end
 end
 

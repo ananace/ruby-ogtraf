@@ -27,6 +27,16 @@ module OGTraf
       @name.to_s
     end
 
+    def to_json(*)
+      {
+        name: name,
+        id: id,
+        gps: gps,
+        clean_name: clean_name,
+        type: type
+      }.compact.to_json
+    end
+
     def <=>(other)
       @id <=> other.id
     end
