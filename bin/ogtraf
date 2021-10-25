@@ -41,16 +41,16 @@ class OGTrafCLI < Thor
 
         journies << j
         time = j.departure
-
-        break if journies.count >= options[:num]
       end
+
+      break if journies.size >= options[:num]
     end
 
     if options[:output].to_sym == :json
-      puts journies..to_json
+      puts journies.take(options[:num]).to_json
     else
       puts "Next #{options[:num]} journeys from #{from_s} to #{to_s} after #{time}:"
-      journies.each do |j|
+      journies.take(options[:num]).each do |j|
         time_left = j.departure - Time.now
 
         hours = (time_left / 3600).floor
