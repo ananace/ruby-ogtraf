@@ -13,5 +13,16 @@ module OGTraf
       @name = datablock[:name]
       @stops = datablock[:stops]
     end
+
+    def to_json(*)
+      {
+        from: @from,
+        to: @to,
+        time: @time,
+        real_time: @real_time,
+        name: @name,
+        stops: @stops
+      }.compact.to_json
+    end
   end
 end

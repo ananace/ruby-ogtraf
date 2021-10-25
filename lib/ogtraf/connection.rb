@@ -27,5 +27,16 @@ module OGTraf
       @line = Line.new datablock[:Line]
       @deviations = datablock[:Deviations].map { |d| Deviation.new d }
     end
+
+    def to_json(*)
+      {
+        departure: @departure,
+        arrival: @arrval,
+        from: @from,
+        to: @to,
+        line: @line,
+        deviations: @deviations
+      }.compact.to_json
+    end
   end
 end

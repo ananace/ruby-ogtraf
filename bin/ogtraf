@@ -13,9 +13,10 @@ class OGTrafCLI < Thor
   option :walk, default: false, type: :boolean, desc: 'Is walking allowed?'
   option :num, default: 5, type: :numeric, desc: 'Number of entries wanted',
                aliases: '-n'
-
   option :time, default: nil, type: :string, desc: 'Date+Time to search from',
                 aliases: '-t'
+  option :output, default: :text, desc: 'Desired output - text or json',
+                  aliases: '-o'
 
   def journey(from, to)
     OGTraf.debug! if options[:verbose]
@@ -25,10 +26,8 @@ class OGTrafCLI < Thor
     time = Time.now
     time = Time.parse(options[:date]) if options[:date]
 
-    puts "Next #{options[:num]} journeys from #{from_s} to #{to_s} after #{time}:"
-
-    shown = 0
-    until shown >= options[:num]
+    journies = []
+    loop do
       avail = OGTraf.journey(
         from: from,
         to: to,
@@ -40,6 +39,18 @@ class OGTrafCLI < Thor
       avail.each do |j|
         next if j.departure < Time.now
 
+        journies << j
+        time = j.departure
+
+        break if journies.count >= options[:num]
+      end
+    end
+
+    if options[:output].to_sym == :json
+      puts journies..to_json
+    else
+      puts "Next #{options[:num]} journeys from #{from_s} to #{to_s} after #{time}:"
+      journies.each do |j|
         time_left = j.departure - Time.now
 
         hours = (time_left / 3600).floor
@@ -64,11 +75,6 @@ class OGTrafCLI < Thor
                         to: c.to.to_s)
           end
         end
-
-        shown += 1
-        break if shown >= options[:num]
-
-        time = j.departure
       end
     end
   end
@@ -76,7 +82,8 @@ class OGTrafCLI < Thor
   desc 'stop STOP', 'Finds a stop by the given name'
   option :limit, default: 5, type: :numeric, desc: 'Number of entries wanted',
                  aliases: '-l'
-  option :output, default: :text, desc: 'Desired output - text or json'
+  option :output, default: :text, desc: 'Desired output - text or json',
+                  aliases: '-o'
   def stop(name)
     OGTraf.debug! if options[:verbose]
 

@@ -27,5 +27,16 @@ module OGTraf
     def to_s
       @header.to_s
     end
+
+    def to_json(*)
+      {
+        header: @header,
+        summary: @summary,
+        details: @details,
+        text: @text,
+        from: @from,
+        to: @to,
+      }.compact.to_json
+    end
   end
 end

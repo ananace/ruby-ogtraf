@@ -40,5 +40,15 @@ module OGTraf
         (@arrival - @real_arrival).abs < allowed_drift
       end
     end
+
+    def to_json(*)
+      {
+        departure: @departure,
+        arrival: @arrival,
+        from: @from,
+        to: @to,
+        connections: @connections
+      }.compact.to_json
+    end
   end
 end

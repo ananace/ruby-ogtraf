@@ -23,5 +23,18 @@ module OGTraf
     def to_s
       @name.to_s
     end
+
+    def to_json(*)
+      {
+        name: @name,
+        number: @number,
+        note: @note,
+        operator: @operator,
+        type: @type,
+        towards: @towards,
+        train_nr: @train_nr,
+        walk: @walk
+      }.compact.to_json
+    end
   end
 end
