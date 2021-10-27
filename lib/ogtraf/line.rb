@@ -1,7 +1,6 @@
 # frozen_string_literal: true
 
 module OGTraf
-  #
   class Line
     attr_reader :name, :number, :note, :operator, :type, :towards, :train_nr,
                 :walk
@@ -24,7 +23,7 @@ module OGTraf
       @name.to_s
     end
 
-    def to_json(*)
+    def to_json(*args)
       {
         name: @name,
         number: @number,
@@ -34,7 +33,7 @@ module OGTraf
         towards: @towards,
         train_nr: @train_nr,
         walk: @walk
-      }.compact.to_json
+      }.compact.to_json(*args)
     end
   end
 end

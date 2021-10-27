@@ -3,7 +3,6 @@
 require 'time'
 
 module OGTraf
-  #
   class Deviation
     attr_reader :header, :summary, :details, :text, :from, :to
 
@@ -28,15 +27,15 @@ module OGTraf
       @header.to_s
     end
 
-    def to_json(*)
+    def to_json(*args)
       {
         header: @header,
         summary: @summary,
         details: @details,
         text: @text,
         from: @from,
-        to: @to,
-      }.compact.to_json
+        to: @to
+      }.compact.to_json(*args)
     end
   end
 end

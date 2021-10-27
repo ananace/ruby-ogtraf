@@ -47,7 +47,13 @@ class OGTrafCLI < Thor
     end
 
     if options[:output].to_sym == :json
-      puts journies.take(options[:num]).to_json
+      opts = {
+        array_nl: "\n",
+        object_nl: "\n",
+        indent: '  ',
+        space: ' '
+      }
+      puts JSON.generate(journies.take(options[:num]), opts)
     else
       puts "Next #{options[:num]} journeys from #{from_s} to #{to_s} after #{time}:"
       journies.take(options[:num]).each do |j|
@@ -88,7 +94,13 @@ class OGTrafCLI < Thor
     OGTraf.debug! if options[:verbose]
 
     if options[:output].to_sym == :json
-      puts OGTraf.stops(name: name).take(options[:limit]).to_json
+      opts = {
+        array_nl: "\n",
+        object_nl: "\n",
+        indent: '  ',
+        space: ' '
+      }
+      puts JSON.generate(OGTraf.stops(name: name).take(options[:limit]), opts)
     else
       puts 'Found stops:'
       puts OGTraf.stops(name: name).take(options[:limit]).map(&:name)

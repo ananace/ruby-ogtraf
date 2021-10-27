@@ -1,7 +1,6 @@
 # frozen_string_literal: true
 
 module OGTraf
-  #
   class Stop
     include Comparable
     attr_reader :name, :id, :gps, :clean_name, :type
@@ -27,14 +26,14 @@ module OGTraf
       @name.to_s
     end
 
-    def to_json(*)
+    def to_json(*args)
       {
         name: name,
         id: id,
         gps: gps,
         clean_name: clean_name,
         type: type
-      }.compact.to_json
+      }.compact.to_json(*args)
     end
 
     def <=>(other)

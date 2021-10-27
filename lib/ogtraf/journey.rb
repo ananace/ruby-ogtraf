@@ -3,7 +3,6 @@
 require 'time'
 
 module OGTraf
-  #
   class Journey
     attr_reader :departure, :arrival, :from, :to,
                 :real_departure, :real_arrival,
@@ -41,14 +40,14 @@ module OGTraf
       end
     end
 
-    def to_json(*)
+    def to_json(*args)
       {
         departure: @departure,
         arrival: @arrival,
         from: @from,
         to: @to,
         connections: @connections
-      }.compact.to_json
+      }.compact.to_json(*args)
     end
   end
 end

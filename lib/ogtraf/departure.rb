@@ -1,7 +1,6 @@
 # frozen_string_literal: true
 
 module OGTraf
-  #
   class Departure
     attr_reader :from, :to, :time, :real_time, :name, :stops
 
@@ -14,7 +13,7 @@ module OGTraf
       @stops = datablock[:stops]
     end
 
-    def to_json(*)
+    def to_json(*args)
       {
         from: @from,
         to: @to,
@@ -22,7 +21,7 @@ module OGTraf
         real_time: @real_time,
         name: @name,
         stops: @stops
-      }.compact.to_json
+      }.compact.to_json(*args)
     end
   end
 end
